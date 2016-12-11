@@ -1,0 +1,48 @@
+Printer Spooler 
+
+- make clean
+- make all
+
+
+Usage:
+
+printer [id]			executes printer with explicit id.
+printer --unlink(or -u) 	unlinks shared memory.
+
+client [source id]		executes client and sets source id.
+
+event				executes event manager.
+
+
+
+
+How it works ?
+
+- Printer program can print jobs. The first printer executed creates a shared memory. Other printers executed after will link to it. Each printer is assigned an ID (unique) automatically, unless an ID is given by argument. In the following case, ID uniqueness is checked. (no two CONNECTED printers can have the same ID).
+
+- Client program can send jobs to printers. The job is added to a single buffer shared by all printers, a printer takes the job and prints it. client takes only one argument : a source id.
+
+- When a client creates a job, a unique ID is assigned to the job. No two jobs will have the same ID, even if printers shut down.
+
+- Event program is an event tracer, it prints everything that clients and printers do.
+
+- User ./printer -u (--unlink) to unlink shared memory.
+
+
+Limitations : 
+
+- The maximum number of printers connected at the same time is fixed. But can be changed easily in shared.h
+
+- Events (messages "produced" by printers and clients) are added into a queue inside the shared memory. Events are "consumed" by the event program. This means, that if the event program is not launched, at one point,
+the queue will be full. Clients and printers will block. The size of the queue can be modified in shared.h
+ 
+- If a printer crashes before it is able to sem_post on the overflow protection semaphore, this semaphore will become corrupted.
+
+MORE Details :
+
+- Printers ID : user can give explicitly an ID to a printer. If this ID is not available, the printer exits. If the ID given by the user is invalid (too big or too small),
+a valid ID is given to the printer automatically.
+
+- Printing time is randomly generating (1s - 10s)
+
+- Total printed jobs is the number of jobs printed since the printer became online.
